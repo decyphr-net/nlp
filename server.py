@@ -1,18 +1,17 @@
 from sanic import Sanic
-from sanic.log import logger, LOGGING_CONFIG_DEFAULTS
+from sanic.log import LOGGING_CONFIG_DEFAULTS, logger
 from sanic.request import Request as SanicRequest
 from sanic.response import BaseHTTPResponse as SanicResponse
+from spacy import load
 
 from application.ping.controllers import bp as ping_blueprint
 from application.ping.manager import PingManager
+from application.syntax_tagging.controllers import bp as syntax_tagging_blueprint
+from application.syntax_tagging.manager import TaggingManager
 
 LOGGING_CONFIG_DEFAULTS["formatters"] = {
-    "generic": {
-        "class": "sanic.logging.formatter.JSONFormatter"
-    },
-    "access": {
-        "class": "sanic.logging.formatter.JSONFormatter"
-    }
+    "generic": {"class": "sanic.logging.formatter.JSONFormatter"},
+    "access": {"class": "sanic.logging.formatter.JSONFormatter"},
 }
 
 app = Sanic("nlp")
@@ -21,6 +20,15 @@ app.config.FALLBACK_ERROR_FORMAT = "json"
 
 app.blueprint(ping_blueprint)
 app.ext.dependency(PingManager())
+
+app.blueprint(syntax_tagging_blueprint)
+app.ext.dependency(TaggingManager())
+
+
+@app.listener("before_server_start")
+async def before_server_start(app, _) -> None:
+    english_nlp = load("en_core_web_lg")
+    app.ctx.nlp = {"en": english_nlp}
 
 
 @app.middleware("request")
