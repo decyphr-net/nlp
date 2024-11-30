@@ -24,6 +24,4 @@ async def processing(
         ),
     )
 
-    print(response)
-
     return json(response.as_dict())
