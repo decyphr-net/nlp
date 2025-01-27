@@ -28,7 +28,9 @@ app.ext.dependency(ProcessingManager())
 async def before_server_start(app, _) -> None:
     english_nlp = load("en_core_web_lg")
     english_nlp.add_pipe("spacytextblob")
-    app.ctx.nlp = {"en": english_nlp}
+    portuguese_nlp = load("pt_core_news_lg")
+    portuguese_nlp.add_pipe("spacytextblob")
+    app.ctx.nlp = {"en": english_nlp, "pt": portuguese_nlp}
 
 
 @app.middleware("request")
